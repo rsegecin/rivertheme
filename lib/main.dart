@@ -20,25 +20,38 @@ class MainApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ThemeMode themeMode = ref.watch(themeModeStateProvider);
+    final ThemeData themeLight =
+        FlexThemeData.light(scheme: FlexScheme.mandyRed);
+    final ThemeData themeDark = FlexThemeData.dark(scheme: FlexScheme.mandyRed);
+    final ThemeData themeData = (themeMode == ThemeMode.light)
+        ? localizeThemeData(context, themeLight)
+        : localizeThemeData(context, themeDark);
 
     if (kDebugMode) {
       print("building app");
     }
 
     return MaterialApp(
-      theme: FlexThemeData.light(scheme: FlexScheme.mandyRed),
-      darkTheme: FlexThemeData.dark(scheme: FlexScheme.mandyRed),
+      theme: themeLight,
+      darkTheme: themeDark,
       themeMode: themeMode,
       builder: (context, child) {
-        final theme = Theme.of(context);
         return ProviderScope(
-          overrides: [
-            themeProvider.overrideWithValue(theme),
-          ],
+          overrides: [themeProvider.overrideWithValue(themeData)],
           child: child!,
         );
       },
       home: const HomeScreen(),
     );
+  }
+
+  static ThemeData localizeThemeData(
+      BuildContext context, ThemeData themeData) {
+    final MaterialLocalizations? localizations =
+        Localizations.of<MaterialLocalizations>(context, MaterialLocalizations);
+    final ScriptCategory category =
+        localizations?.scriptCategory ?? ScriptCategory.englishLike;
+    return ThemeData.localize(
+        themeData, themeData.typography.geometryThemeFor(category));
   }
 }
